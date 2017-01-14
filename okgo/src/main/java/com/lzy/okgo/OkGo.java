@@ -41,7 +41,10 @@ import okhttp3.OkHttpClient;
  * 修订历史：
  * ================================================
  */
-public class OkGo {
+public enum OkGo {
+
+    INSTANCE;
+
     public static final int DEFAULT_MILLISECONDS = 60000;       //默认的超时时间
     public static int REFRESH_TIME = 100;                       //回调刷新时间（单位ms）
 
@@ -56,7 +59,7 @@ public class OkGo {
     private static Application context;                         //全局上下文
     private CookieJarImpl cookieJar;                            //全局 Cookie 实例
 
-    private OkGo() {
+    OkGo() {
         okHttpClientBuilder = new OkHttpClient.Builder();
         okHttpClientBuilder.hostnameVerifier(HttpsUtils.UnSafeHostnameVerifier);
         okHttpClientBuilder.connectTimeout(DEFAULT_MILLISECONDS, TimeUnit.MILLISECONDS);
@@ -66,19 +69,20 @@ public class OkGo {
     }
 
     public static OkGo getInstance() {
-        return OkGoHolder.holder;
+        return INSTANCE;
     }
 
-    private static class OkGoHolder {
-        private static OkGo holder = new OkGo();
-    }
 
-    /** 必须在全局Application先调用，获取context上下文，否则缓存无法使用 */
+    /**
+     * 必须在全局Application先调用，获取context上下文，否则缓存无法使用
+     */
     public static void init(Application app) {
         context = app;
     }
 
-    /** 获取全局上下文 */
+    /**
+     * 获取全局上下文
+     */
     public static Context getContext() {
         if (context == null) throw new IllegalStateException("请先在全局Application中调用 OkGo.init() 初始化！");
         return context;
@@ -93,42 +97,58 @@ public class OkGo {
         return okHttpClient;
     }
 
-    /** 对外暴露 OkHttpClient,方便自定义 */
+    /**
+     * 对外暴露 OkHttpClient,方便自定义
+     */
     public OkHttpClient.Builder getOkHttpClientBuilder() {
         return okHttpClientBuilder;
     }
 
-    /** get请求 */
+    /**
+     * get请求
+     */
     public static GetRequest get(String url) {
         return new GetRequest(url);
     }
 
-    /** post请求 */
+    /**
+     * post请求
+     */
     public static PostRequest post(String url) {
         return new PostRequest(url);
     }
 
-    /** put请求 */
+    /**
+     * put请求
+     */
     public static PutRequest put(String url) {
         return new PutRequest(url);
     }
 
-    /** head请求 */
+    /**
+     * head请求
+     */
     public static HeadRequest head(String url) {
         return new HeadRequest(url);
     }
 
-    /** delete请求 */
+    /**
+     * delete请求
+     */
     public static DeleteRequest delete(String url) {
         return new DeleteRequest(url);
     }
 
-    /** patch请求 */
+    /**
+     * patch请求
+     */
     public static OptionsRequest options(String url) {
         return new OptionsRequest(url);
     }
 
-    /** 调试模式,默认打开所有的异常调试 */
+    /**
+     * 调试模式,默认打开所有的异常调试
+     */
     public OkGo debug(String tag) {
         debug(tag, Level.INFO, true);
         return this;
@@ -147,7 +167,9 @@ public class OkGo {
         return this;
     }
 
-    /** https的自定义域名访问规则 */
+    /**
+     * https的自定义域名访问规则
+     */
     public OkGo setHostnameVerifier(HostnameVerifier hostnameVerifier) {
         okHttpClientBuilder.hostnameVerifier(hostnameVerifier);
         return this;
@@ -193,102 +215,136 @@ public class OkGo {
         return this;
     }
 
-    /** 全局cookie存取规则 */
+    /**
+     * 全局cookie存取规则
+     */
     public OkGo setCookieStore(CookieStore cookieStore) {
         cookieJar = new CookieJarImpl(cookieStore);
         okHttpClientBuilder.cookieJar(cookieJar);
         return this;
     }
 
-    /** 获取全局的cookie实例 */
+    /**
+     * 获取全局的cookie实例
+     */
     public CookieJarImpl getCookieJar() {
         return cookieJar;
     }
 
-    /** 全局读取超时时间 */
+    /**
+     * 全局读取超时时间
+     */
     public OkGo setReadTimeOut(long readTimeOut) {
         okHttpClientBuilder.readTimeout(readTimeOut, TimeUnit.MILLISECONDS);
         return this;
     }
 
-    /** 全局写入超时时间 */
+    /**
+     * 全局写入超时时间
+     */
     public OkGo setWriteTimeOut(long writeTimeout) {
         okHttpClientBuilder.writeTimeout(writeTimeout, TimeUnit.MILLISECONDS);
         return this;
     }
 
-    /** 全局连接超时时间 */
+    /**
+     * 全局连接超时时间
+     */
     public OkGo setConnectTimeout(long connectTimeout) {
         okHttpClientBuilder.connectTimeout(connectTimeout, TimeUnit.MILLISECONDS);
         return this;
     }
 
-    /** 超时重试次数 */
+    /**
+     * 超时重试次数
+     */
     public OkGo setRetryCount(int retryCount) {
         if (retryCount < 0) throw new IllegalArgumentException("retryCount must > 0");
         mRetryCount = retryCount;
         return this;
     }
 
-    /** 超时重试次数 */
+    /**
+     * 超时重试次数
+     */
     public int getRetryCount() {
         return mRetryCount;
     }
 
-    /** 全局的缓存模式 */
+    /**
+     * 全局的缓存模式
+     */
     public OkGo setCacheMode(CacheMode cacheMode) {
         mCacheMode = cacheMode;
         return this;
     }
 
-    /** 获取全局的缓存模式 */
+    /**
+     * 获取全局的缓存模式
+     */
     public CacheMode getCacheMode() {
         return mCacheMode;
     }
 
-    /** 全局的缓存过期时间 */
+    /**
+     * 全局的缓存过期时间
+     */
     public OkGo setCacheTime(long cacheTime) {
         if (cacheTime <= -1) cacheTime = CacheEntity.CACHE_NEVER_EXPIRE;
         mCacheTime = cacheTime;
         return this;
     }
 
-    /** 获取全局的缓存过期时间 */
+    /**
+     * 获取全局的缓存过期时间
+     */
     public long getCacheTime() {
         return mCacheTime;
     }
 
-    /** 获取全局公共请求参数 */
+    /**
+     * 获取全局公共请求参数
+     */
     public HttpParams getCommonParams() {
         return mCommonParams;
     }
 
-    /** 添加全局公共请求参数 */
+    /**
+     * 添加全局公共请求参数
+     */
     public OkGo addCommonParams(HttpParams commonParams) {
         if (mCommonParams == null) mCommonParams = new HttpParams();
         mCommonParams.put(commonParams);
         return this;
     }
 
-    /** 获取全局公共请求头 */
+    /**
+     * 获取全局公共请求头
+     */
     public HttpHeaders getCommonHeaders() {
         return mCommonHeaders;
     }
 
-    /** 添加全局公共请求参数 */
+    /**
+     * 添加全局公共请求参数
+     */
     public OkGo addCommonHeaders(HttpHeaders commonHeaders) {
         if (mCommonHeaders == null) mCommonHeaders = new HttpHeaders();
         mCommonHeaders.put(commonHeaders);
         return this;
     }
 
-    /** 添加全局拦截器 */
+    /**
+     * 添加全局拦截器
+     */
     public OkGo addInterceptor(Interceptor interceptor) {
         okHttpClientBuilder.addInterceptor(interceptor);
         return this;
     }
 
-    /** 根据Tag取消请求 */
+    /**
+     * 根据Tag取消请求
+     */
     public void cancelTag(Object tag) {
         for (Call call : getOkHttpClient().dispatcher().queuedCalls()) {
             if (tag.equals(call.request().tag())) {
@@ -302,7 +358,9 @@ public class OkGo {
         }
     }
 
-    /** 取消所有请求请求 */
+    /**
+     * 取消所有请求请求
+     */
     public void cancelAll() {
         for (Call call : getOkHttpClient().dispatcher().queuedCalls()) {
             call.cancel();
